@@ -1,2 +1,2 @@
-# the_internet_tests
-tests on the Challenging DOM web page
+# Selenium Web Tests on 'Challenging DOM' Page
+Tests on the Challenging DOM web page, using Pytest, Python and Selenium
