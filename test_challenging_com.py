@@ -1,24 +1,20 @@
+import re
+
 import pytest
-import logging as log
 from selenium import webdriver
-
-# Settings function
-from selenium.webdriver.chrome.webdriver import WebDriver
-
 
 TARGET_WEB_PAGE = "http://the-internet.herokuapp.com/challenging_dom"
 CHROME_PATH = "/home/kp/Downloads/chromedriver"
 
-log.basicConfig()
 
 @pytest.fixture(scope="module")
-def web_session() -> webdriver:
+def web():
     """
     Fixture to setup and return selenium session
     Tears down session after tests
     :returns webdriver
     """
-    log.info(f"Setting up webdriver using Chrome: {CHROME_PATH}")
+    print(f"\nSetting up webdriver using Chrome: {CHROME_PATH}")
     driver = webdriver.Chrome(CHROME_PATH)
     yield driver
 
@@ -26,178 +22,141 @@ def web_session() -> webdriver:
     driver.close()
 
 
-def test_load_page(web_session):
+def test_load_page(web):
     """
     Check that the target web page can be opened.
     Check the title matches the expected page title "The Internet"
     """
-    log.info(f"Getting URL {TARGET_WEB_PAGE}")
-    web_session.get(TARGET_WEB_PAGE)
-    assert "The Internet" in web_session.title
+    print(f"\nGetting URL {TARGET_WEB_PAGE}")
+    web.get(TARGET_WEB_PAGE)
+    assert "The Internet" in web.title
 
 
-def test_check_page_header(web_session):
+def test_check_page_header(web):
     """
-    This test checks that the page header matches the expected name "Challenging DOM"
+    Check the page header matches the expected name "Challenging DOM"
     """
-    log.info("Checking Page Header"["web_url"])
-    assert web_session.find_element_by_xpath('//div[@class="example"]/h3').text == "Challenging DOM"
+    print(f"\nChecking Page Header 'Challenging DOM'")
+    assert web.find_element_by_xpath('//div[@class="example"]/h3').text == "Challenging DOM"
 
 
-def test_check_button(web_session):
+def test_check_button(web):
     """
-    Test that checks the operation of the element "button"
+    Test that checks the operation of the element "button" in blue
     This also checks that the element attribute "id" is changed after the button is clicked
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
+    el = web.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
     button_id = el.get_attribute("id")
     el.click()
-    el = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
+    el = web.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
     assert el.get_attribute("id") != button_id
 
 
-def test_check_button_alert(web_session):
+def test_check_button_alert(web):
     """
-    Test that checks the operation of the element "button alert"
+    Test that checks the operation of the element "button alert" in red
     This also checks that the element attribute "id" is changed after the button is clicked
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button alert"]')
+    el = web.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button alert"]')
     button_id = el.get_attribute("id")
     el.click()
-    el = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button alert"]')
+    el = web.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button alert"]')
     assert el.get_attribute("id") != button_id
 
 
-def test_check_button_success(web_session):
+def test_check_button_success(web):
     """
-    Test that checks the operation of the element "button success"
+    Test that checks the operation of the element "button success" in green
     This also checks that the element attribute "id" is changed after the button is clicked
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button success"]')
+    el = web.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button success"]')
     button_id = el.get_attribute("id")
     el.click()
-    el = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button success"]')
+    el = web.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button success"]')
     assert el.get_attribute("id") != button_id
 
 
-def test_check_table_header_one(web_session):
+def test_check_table_header(web):
     """
-    Test that checks the text of the first header of the table
-    This also checks that the text of the first header dose not change after a page refresh
+    Check the static header of the table
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[1]')
-    th_text = el.text
-    assert th_text == "Lorem"
-    button = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
-    button.click()
-    log.info(th_text)
-    assert web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[1]').text == th_text
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[1]').text == "Lorem"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[2]').text == "Ipsum"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[3]').text == "Dolor"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[4]').text == "Sit"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[5]').text == "Amet"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[6]').text == "Diceret"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[7]').text == "Action"
 
 
-def test_check_table_header_two(web_session):
+def test_check_first_table_column(web):
     """
-    Test that checks the text of the second header of the table
-    This also checks that the text of the second header dose not change after a page refresh
+    Check first column elements in the table  # TODO replace with iteration
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[2]')
-    th_text = el.text
-    assert th_text == "Ipsum"
-    button = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
-    button.click()
-    log.info(th_text)
-    assert web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[2]').text == th_text
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[1]/td[1]').text == "Iuvaret0"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[2]/td[1]').text == "Iuvaret1"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[3]/td[1]').text == "Iuvaret2"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[4]/td[1]').text == "Iuvaret3"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[5]/td[1]').text == "Iuvaret4"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[6]/td[1]').text == "Iuvaret5"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[7]/td[1]').text == "Iuvaret6"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[8]/td[1]').text == "Iuvaret7"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[9]/td[1]').text == "Iuvaret8"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[10]/td[1]').text == "Iuvaret9"
 
 
-def test_check_table_header_three(web_session):
+def test_check_second_table_column(web):
     """
-    Test that checks the text of the third header of the table
-    This also checks that the text of the third header dose not change after a page refresh
+    Check second column elements in the table  # TODO replace with iteration
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[3]')
-    th_text = el.text
-    assert th_text == "Dolor"
-    button = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
-    button.click()
-    log.info(th_text)
-    assert web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[3]').text == th_text
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[1]/td[2]').text == "Apeirian0"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[2]/td[2]').text == "Apeirian1"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[3]/td[2]').text == "Apeirian2"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[4]/td[2]').text == "Apeirian3"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[5]/td[2]').text == "Apeirian4"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[6]/td[2]').text == "Apeirian5"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[7]/td[2]').text == "Apeirian6"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[8]/td[2]').text == "Apeirian7"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[9]/td[2]').text == "Apeirian8"
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[10]/td[2]').text == "Apeirian9"
 
 
-def test_check_table_header_four(web_session):
+@pytest.mark.xfail
+def test_edit_second_line(web):
     """
-    Test that checks the text of the forth header of the table
-    This also checks that the text of the forth header dose not change after a page refresh
+    Check the operation of the edit link on the second line of the table
+    I'm not clear what's meant to happen when the edit button is clicked
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[4]')
-    th_text = el.text
-    assert th_text == "Sit"
-    button = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
-    button.click()
-    log.info(th_text)
-    assert web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[4]').text == th_text
+    web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[2]/td[7]/a[1]').click()  # TODO use the href
+    # Just guessing here, but check the edit link is no longer there?
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[2]/td[7]/a[1]').text != "edit"
 
 
-def test_check_table_header_five(web_session):
+@pytest.mark.xfail
+def test_delete_sixth_line(web):
     """
-    Test that checks the text of the fifth header of the table
-    This also checks that the text of the fifth header dose not change after a page refresh
+    Check the delete button on the sixth line (spot check)
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[5]')
-    th_text = el.text
-    assert th_text == "Amet"
-    button = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
-    button.click()
-    log.info(th_text)
-    assert web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[5]').text == th_text
+    web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[6]/td[7]/a[2]').click()  # TODO use the href
+    # expecting this line to be deleted and the line below to move up - check for line 7's content on line 6
+    assert web.find_element_by_xpath('//div[@class="large-10 columns"]/table/tbody/tr[6]/td[1]').text == "Iuvaret6"
 
 
-def test_check_table_header_six(web_session):
+def test_answer_changes_on_refresh(web):
     """
-    Test that checks the text of the sixth header of the table
-    This also checks that the text of the sixth header dose not change after a page refresh
+    Check the answer field rolls on page refresh
     """
-    el = web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[6]')
-    th_text = el.text
-    assert th_text == "Diceret"
-    button = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
-    button.click()
-    log.info(th_text)
-    assert web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[6]').text == th_text
+    # grab the canvas generation script block, which contains the Answer buried in javascript
+    script_block = web.find_element_by_xpath('//div[@id="content"]/script').get_attribute('innerHTML')
+    # pick out the number after 'Answer' using regex
+    old_answer = re.search(r"Answer:\s(\d+)", script_block).group(1)
+    print(f"\nFound current Answer value: {old_answer}")
+    # refresh page
+    web.refresh()
+    # grab the canvas generation script block, which contains the Answer buried in javascript
+    script_block = web.find_element_by_xpath('//div[@id="content"]/script').get_attribute('innerHTML')
+    # pick out the number after 'Answer' using regex
+    new_answer = re.search(r"Answer:\s(\d+)", script_block).group(1)
+    print(f"\nFound new Answer value: {new_answer}")
 
-
-def test_check_table_header_seven(web_session):
-    """
-    Test that checks the text of the seventh header of the table
-    This also checks that the text of the seventh header dose not change after a page refresh
-   """
-    el = web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[7]')
-    th_text = el.text
-    assert th_text == "Action"
-    button = web_session.find_element_by_xpath('//div[@class="large-2 columns"]/a[@class="button"]')
-    button.click()
-    log.info(th_text)
-    assert web_session.find_element_by_xpath('//div[@class="large-10 columns"]/table/thead/tr/th[7]').text == th_text
-
-
-def test_check_first_table_edit_button(web_session):
-    """
-    Test that checks the first edit button of the table is enabled
-    """
-    el = web_session.find_element_by_xpath('//div[2]/table/tbody/tr[1]/td[7]/a[1]')
-    if el.is_enabled():
-        log.info("Edit Enabled")
-    else:
-        log.info("Edit not enabled")
-
-
-def test_check_first_table_delete_button(web_session):
-    """
-    Test that checks the first delete button of the table is enabled
-    """
-    el = web_session.find_element_by_xpath('//div[2]/table/tbody/tr[1]/td[7]/a[2]')
-    if el.is_enabled():
-        log.info("Delete Enabled")
-    else:
-        log.info("Delete not enabled")
-
-
-# TODO add test to store answer produced by script element, refresh page, and check that new answer is produced.
+    assert old_answer != new_answer
